@@ -25,7 +25,7 @@ function onForm(event) {
   clearPage();
   animationForm();
   setTimeout(() => {
-    fetchImages().then(renderImages).then(notificationTotalHits).then(endOfImages).then(() => { loadMoreBtnRef.classList.remove("is-hidden") })
+    fetchImages().then(renderImages).then(notificationTotalHits).then(visibleBtn).then(endOfImages)
   }, 250);
 };
 
