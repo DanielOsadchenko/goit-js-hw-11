@@ -19,6 +19,7 @@ loadMoreBtnRef.addEventListener('click', loadMore);
 
 function onForm(event) {
   event.preventDefault();
+  
   loadMoreBtnRef.classList.add("is-hidden");
   clearGallery();
   clearPage();
@@ -124,3 +125,4 @@ function visibleBtn(images) {
   loadMoreBtnRef.classList.remove("is-hidden")
   return images
 }
+
