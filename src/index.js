@@ -1,5 +1,7 @@
 import Notiflix from 'notiflix';
 const axios = require('axios');
+import SimpleLightbox from 'simplelightbox';
+import 'simplelightbox/dist/simple-lightbox.min.css';
 
 const formRef = document.querySelector(".search-form");
 const galleryRef = document.querySelector(".gallery");
@@ -7,14 +9,23 @@ const loadMoreBtnRef = document.querySelector(".load-more");
 
 let page = 1;
 
+const galleryLightbox = new SimpleLightbox('.gallery a', {
+  captionsData: 'alt',
+  captionDelay: 250,
+});
+
 formRef.addEventListener("submit", onForm);
 loadMoreBtnRef.addEventListener('click', loadMore);
 
 function onForm(event) {
   event.preventDefault();
+  loadMoreBtnRef.classList.add("is-hidden");
   clearGallery();
   clearPage();
-  fetchImages().then(renderImages);
+  animationForm();
+  setTimeout(() => {
+    fetchImages().then(renderImages).then(notificationTotalHits).then(endOfImages).then(() => { loadMoreBtnRef.classList.remove("is-hidden") })
+  }, 250);
 };
 
 
@@ -37,12 +48,12 @@ function renderImages(images) {
     return;
   }
   
-  notificationTotalHits(images);
+  
   addPage();
-
   images.data.hits.map(image => {
     const markup = `<div class="photo-card">
-      <img src="${image.webformatURL}" alt="${image.tags}" loading="lazy" />
+      <a href="${image.largeImageURL}"><img class="image" src="${image.webformatURL}" alt="${image.tags}"
+    loading="lazy" /></a>
       <div class="info">
         <p class="info-item">
           ${image.likes}<b>Likes</b>
@@ -58,8 +69,11 @@ function renderImages(images) {
         </p>
       </div>
     </div>`;
-        galleryRef.insertAdjacentHTML("beforeend", markup);
-      })
+    galleryRef.insertAdjacentHTML("beforeend", markup);
+    galleryLightbox.refresh();
+  });
+  return images;
+  
 };
 
 // УВЕДОМЛЕНИЕ ВСЕГО ВАРИАНТОВ
@@ -75,7 +89,8 @@ function clearGallery() {
 
 // ЗАГРУЗИТЬ БОЛЬШЕ
 function loadMore() {
-    fetchImages().then(renderImages);
+  loadMoreBtnRef.classList.add("is-hidden");
+  fetchImages().then(renderImages).then(visibleBtn).then(endOfImages);
 }
 
 // ДОБАВИТЬ  +1 СТРАНИЦУ
@@ -84,7 +99,28 @@ function addPage() {
 };
 
 // ОЧИСТИТЬ СЧЕТЧИК СТРАНИЦ
-
 function clearPage() {
   page = 1;
+}
+
+// УВЕДОМИТЬ ЧТО ЗАКОНЧИЛИСЬ КАРТИНКИ
+function endOfImages(images) {
+  if (images.data.hits.length < 40) {
+    loadMoreBtnRef.classList.add("is-hidden");
+    Notiflix.Notify.info("We're sorry, but you've reached the end of search results.")
+    return images;
+  }
+  return images;
+}
+
+// Сделать анимашку
+function animationForm() {
+  formRef.classList.add("search-form-active");
+  document.body.classList.remove("bg-image");
+}
+
+// Показать кнопку
+function visibleBtn(images) {
+  loadMoreBtnRef.classList.remove("is-hidden")
+  return images
 }
