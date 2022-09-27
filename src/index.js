@@ -1,37 +1,45 @@
+// Імпорт
 import Notiflix from 'notiflix';
 const axios = require('axios');
 import SimpleLightbox from 'simplelightbox';
 import 'simplelightbox/dist/simple-lightbox.min.css';
 
+// Рефи
 const formRef = document.querySelector(".search-form");
 const galleryRef = document.querySelector(".gallery");
-const loadMoreBtnRef = document.querySelector(".load-more");
+const sentinelRef = document.querySelector('#sentinel');
 
+// Змінні
 let page = 1;
 
+// Лайтбокс
 const galleryLightbox = new SimpleLightbox('.gallery a', {
   captionsData: 'alt',
   captionDelay: 250,
 });
 
+// Слухачі
 formRef.addEventListener("submit", onForm);
-loadMoreBtnRef.addEventListener('click', loadMore);
 
+// ФункціІ
 function onForm(event) {
   event.preventDefault();
-  
-  loadMoreBtnRef.classList.add("is-hidden");
+
   clearGallery();
   clearPage();
   animationForm();
+
   setTimeout(() => {
-    fetchImages().then(renderImages).then(notificationTotalHits).then(visibleBtn).then(endOfImages)
+    fetchImages().then(renderImages).then(notificationTotalHits).then(endOfImages)
   }, 250);
+
+  infiniteScroll();
 };
 
 
 // ХТТП ЗАПРОС
 async function fetchImages() {
+  
   try {
     const url = `https://pixabay.com/api/?key=30188307-c49a871897b6d5bfff07bff1b&q=${formRef.elements.searchQuery.value.trim()}&image_type=photo&orientation=horizontal&safesearch=true&page=${page}&per_page=40`;
     const response = await axios.get(url);
@@ -88,12 +96,6 @@ function clearGallery() {
   galleryRef.innerHTML = "";
 }
 
-// ЗАГРУЗИТЬ БОЛЬШЕ
-function loadMore() {
-  loadMoreBtnRef.classList.add("is-hidden");
-  fetchImages().then(renderImages).then(visibleBtn).then(endOfImages);
-}
-
 // ДОБАВИТЬ  +1 СТРАНИЦУ
 function addPage() {
   page += 1;
@@ -107,8 +109,8 @@ function clearPage() {
 // УВЕДОМИТЬ ЧТО ЗАКОНЧИЛИСЬ КАРТИНКИ
 function endOfImages(images) {
   if (images.data.hits.length < 40) {
-    loadMoreBtnRef.classList.add("is-hidden");
-    Notiflix.Notify.info("We're sorry, but you've reached the end of search results.")
+    Notiflix.Notify.info("We're sorry, but you've reached the end of search results.");
+    
     return images;
   }
   return images;
@@ -120,9 +122,23 @@ function animationForm() {
   document.body.classList.remove("bg-image");
 }
 
-// Показать кнопку
-function visibleBtn(images) {
-  loadMoreBtnRef.classList.remove("is-hidden")
-  return images
+// бесконечный скрол
+function infiniteScroll() {
+  const options = {
+  root: document.querySelector('#scrollArea'),
+  rootMargin: '300px',
+  threshold: 1.0
 }
+const callback = entries => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting && formRef.elements.searchQuery.value.trim() !== '') {
+      fetchImages().then(renderImages).then(endOfImages)
+    }
+  })
+}
+
+const observer = new IntersectionObserver(callback, options);
+observer.observe(sentinelRef);
+}
+
 
