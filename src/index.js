@@ -20,7 +20,7 @@ const galleryLightbox = new SimpleLightbox('.gallery a', {
 
 // Слухачі
 formRef.addEventListener("submit", onForm);
-
+const observer = new IntersectionObserver(callback, options);
 // ФункціІ
 function onForm(event) {
   event.preventDefault();
@@ -33,7 +33,7 @@ function onForm(event) {
     fetchImages().then(renderImages).then(notificationTotalHits).then(endOfImages)
   }, 250);
 
-  infiniteScroll();
+  observer.observe(sentinelRef);
 };
 
 
@@ -54,6 +54,7 @@ async function fetchImages() {
 function renderImages(images) {
   if (images.data.hits.length === 0) {
     Notiflix.Notify.failure("Sorry, there are no images matching your search query. Please try again.");
+    observer.unobserve(sentinelRef);
     return;
   }
   
@@ -110,8 +111,7 @@ function clearPage() {
 function endOfImages(images) {
   if (images.data.hits.length < 40) {
     Notiflix.Notify.info("We're sorry, but you've reached the end of search results.");
-    
-    return images;
+    return
   }
   return images;
 }
@@ -123,7 +123,7 @@ function animationForm() {
 }
 
 // бесконечный скрол
-function infiniteScroll() {
+
   const options = {
   root: document.querySelector('#scrollArea'),
   rootMargin: '300px',
@@ -137,8 +137,8 @@ const callback = entries => {
   })
 }
 
-const observer = new IntersectionObserver(callback, options);
-observer.observe(sentinelRef);
-}
+
+
+
 
 
