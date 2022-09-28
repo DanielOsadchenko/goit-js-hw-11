@@ -20,6 +20,19 @@ const galleryLightbox = new SimpleLightbox('.gallery a', {
 
 // Слухачі
 formRef.addEventListener("submit", onForm);
+
+  const options = {
+  root: document.querySelector('#scrollArea'),
+  rootMargin: '300px',
+  threshold: 1.0
+}
+const callback = entries => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting && formRef.elements.searchQuery.value.trim() !== '') {
+      fetchImages().then(renderImages).then(endOfImages)
+    }
+  })
+}
 const observer = new IntersectionObserver(callback, options);
 // ФункціІ
 function onForm(event) {
@@ -124,18 +137,7 @@ function animationForm() {
 
 // бесконечный скрол
 
-  const options = {
-  root: document.querySelector('#scrollArea'),
-  rootMargin: '300px',
-  threshold: 1.0
-}
-const callback = entries => {
-  entries.forEach(entry => {
-    if (entry.isIntersecting && formRef.elements.searchQuery.value.trim() !== '') {
-      fetchImages().then(renderImages).then(endOfImages)
-    }
-  })
-}
+
 
 
 
